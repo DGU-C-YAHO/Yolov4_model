@@ -168,10 +168,15 @@ if __name__ == '__main__':
     testpath = "./testdata"
     resultpath = "./resultdata"
     weightsFilePath = "./"+str(args.weightfile)
-    if(not os.path.isdir(testpath)):
-        os.mkdir(testpath)
-    if(not os.path.isdir(resultpath)):
-        os.mkdir(resultpath)
+
+    if(os.path.isdir(testpath)):
+        os.rmdir(testpath)
+    if(os.path.isdir(resultpath)):
+        os.rmdir(resultpath)
+    
+    os.mkdir(testpath)
+    os.mkdir(resultpath)
+
     if(not os.path.isfile(weightsFilePath)):
         os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
         args.weightfile = "./yolov4.weights"
