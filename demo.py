@@ -26,7 +26,7 @@ from os.path import join, isfile
 use_cuda = True
 resultimage = []
 
-def detect_cv2(cfgfile, weightfile, imgfile, m):
+def detect_cv2(imgfile, m):
     import cv2
 
     num_classes = m.num_classes
@@ -155,7 +155,6 @@ if __name__ == '__main__':
         ydl.download([link])
 
     args = get_args()
-
     m = Darknet(args.cfgfile)
     m.load_weights(args.weightfile)
     print('Loading weights from %s... Done!' % (args.weightfile))
