@@ -20,15 +20,16 @@ from tool.darknet2pytorch import Darknet
 import argparse
 import youtube_dl
 import os
+from os.path import join, isfile
 
 """hyper parameters"""
 use_cuda = True
+resultimage = []
 
 def detect_cv2(cfgfile, weightfile, imgfile):
     import cv2
     m = Darknet(cfgfile)
 
-    m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
 
@@ -54,53 +55,9 @@ def detect_cv2(cfgfile, weightfile, imgfile):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-
-    plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
-
-
-def detect_cv2_camera(cfgfile, weightfile):
-    import cv2
-    m = Darknet(cfgfile)
-
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if use_cuda:
-        m.cuda()
-
-    cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("./test.mp4")
-    cap.set(3, 1280)
-    cap.set(4, 720)
-    print("Starting the YOLO loop...")
-
-    num_classes = m.num_classes
-    if num_classes == 20:
-        namesfile = 'data/voc.names'
-    elif num_classes == 80:
-        namesfile = 'data/coco.names'
-    else:
-        namesfile = 'data/x.names'
-    class_names = load_class_names(namesfile)
-
-    while True:
-        ret, img = cap.read()
-        sized = cv2.resize(img, (m.width, m.height))
-        sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
-
-        start = time.time()
-        boxes = do_detect(m, sized, 0.4, 0.6, use_cuda)
-        finish = time.time()
-        print('Predicted in %f seconds.' % (finish - start))
-
-        result_img = plot_boxes_cv2(img, boxes[0], savename=None, class_names=class_names)
-
-        cv2.imshow('Yolo demo', result_img)
-        cv2.waitKey(1)
-
-    cap.release()
-
+    img = plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    if(img is not None):
+        resultimage.append(img)
 
 def detect_skimage(cfgfile, weightfile, imgfile):
     from skimage import io
@@ -163,7 +120,7 @@ def makeImage():
     os.system("ffmpeg -i video.mkv -ss 00:00:00 -t 10 -r 4 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg")
     
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
-    files = [f for f in listdir('/content/drive/MyDrive/YoloV4/darknet/testdata') if isfile(join('/content/drive/MyDrive/YoloV4/darknet/testdata', f))]
+    files = [f for f in os.listdir('/content/drive/MyDrive/YoloV4/darknet/testdata') if isfile(join('/content/drive/MyDrive/YoloV4/darknet/testdata', f))]
 
     # test image 목록 출력
     print("생성된 test-data 목록은 다음과 같습니다.")
@@ -179,6 +136,14 @@ def info(videoPath):
     height = cap.get(4) # (=cv.CAP_PROP_FRAME_HEIGHT)
     fps = cap.get(5)  # (=cv.CAP_PROP_FPS)
     print('프레임 너비 : %d, 프레임 높이 : %d, 초당 프레임 수 : %d' %(width, height, fps))
+
+def saveImage():
+    import cv2
+    for i in range(len(resultimage)):
+        img = resultimage[i]
+        output = "./resultdata/test-%d.jpg" % (i+1)
+        print("savepath"+output)
+        cv2.imwrite(output,img)
 
 if __name__ == '__main__':
     
@@ -218,4 +183,4 @@ if __name__ == '__main__':
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
         detect_cv2(args.cfgfile, args.weightfile, imagesPath)
-
+    saveImage()
