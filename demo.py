@@ -26,7 +26,7 @@ from os.path import join, isfile
 use_cuda = True
 resultimage = []
 
-def detect_cv2(imgfile, m):
+def detect_cv2(labelName,imgfile, m):
     import cv2
 
     num_classes = m.num_classes
@@ -48,7 +48,7 @@ def detect_cv2(imgfile, m):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-    img = plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    img = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
         resultimage.append(img)
 
@@ -62,6 +62,7 @@ def get_args():
     parser.add_argument('-videofile', type=str,
                         default='./video.mkv',
                         help='path of your video file.', dest='videofile')
+    parser.add_argument('-labelName',type=str,help='학습 데이터 생성 라벨 입력',dest='labelName',action='append')
     args = parser.parse_args()
 
     return args
@@ -151,5 +152,5 @@ if __name__ == '__main__':
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(imagesPath,m)
+        detect_cv2(args.labelName,imagesPath,m)
     saveImage()

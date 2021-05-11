@@ -96,7 +96,7 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
 
 
 
-def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
+def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
     import cv2
     img = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
@@ -134,10 +134,11 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             blue = get_color(0, offset, classes)
             if color is None:
                 rgb = (red, green, blue)
-            if(class_names[cls_id]=='car'):
-                check = True
-                img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-                img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
+            for label in labelName:
+                if(class_names[cls_id]==label):
+                    check = True
+                    img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
+                    img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
     
     if(check):
         return img
