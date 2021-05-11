@@ -26,15 +26,8 @@ from os.path import join, isfile
 use_cuda = True
 resultimage = []
 
-def detect_cv2(cfgfile, weightfile, imgfile):
+def detect_cv2(cfgfile, weightfile, imgfile, m):
     import cv2
-    m = Darknet(cfgfile)
-
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if use_cuda:
-        m.cuda()
 
     num_classes = m.num_classes
     if num_classes == 20:
@@ -146,7 +139,7 @@ def saveImage():
         cv2.imwrite(output,img)
 
 if __name__ == '__main__':
-    
+    import shutil
     #임시로 유튭으로 만
     print("url을 입력하시오")
     link = input("")
@@ -163,6 +156,12 @@ if __name__ == '__main__':
 
     args = get_args()
 
+    m = Darknet(args.cfgfile)
+    m.load_weights(args.weightfile)
+    print('Loading weights from %s... Done!' % (args.weightfile))
+    if use_cuda:
+        m.cuda()
+
     # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
     # weight 파일이 위치한 곳에 없을때의 예외처리들
     testpath = "./testdata"
@@ -170,9 +169,9 @@ if __name__ == '__main__':
     weightsFilePath = "./"+str(args.weightfile)
 
     if(os.path.isdir(testpath)):
-        os.rmdir(testpath)
+        shutil.rmtree(testpath)
     if(os.path.isdir(resultpath)):
-        os.rmdir(resultpath)
+        shutil.rmtree(resultpath)
     
     os.mkdir(testpath)
     os.mkdir(resultpath)
@@ -187,5 +186,5 @@ if __name__ == '__main__':
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(args.cfgfile, args.weightfile, imagesPath)
+        detect_cv2(args.cfgfile, args.weightfile, imagesPath,m)
     saveImage()
