@@ -143,9 +143,9 @@ def get_args():
     parser.add_argument('-weightfile', type=str,
                         default='./checkpoints/Yolov4_epoch1.pth',
                         help='path of trained model.', dest='weightfile')
-    parser.add_argument('-imgfile', type=str,
-                        default='./data/mscoco2017/train2017/190109_180343_00154162.jpg',
-                        help='path of your image file.', dest='imgfile')
+    parser.add_argument('-videofile', type=str,
+                        default='./video.mkv',
+                        help='path of your video file.', dest='videofile')
     args = parser.parse_args()
 
     return args
@@ -168,8 +168,34 @@ def makeImage():
     # test image 목록 출력
     print("생성된 test-data 목록은 다음과 같습니다.")
     print(files)
+    return files
+
+def info(videoPath):
+    import cv2
+    # VideoCapture 객체 정의
+    cap = cv2.VideoCapture(videoPath)
+    # 프레임 너비/높이, 초당 프레임 수 확인
+    width = cap.get(3)  # (=cv.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(4) # (=cv.CAP_PROP_FRAME_HEIGHT)
+    fps = cap.get(5)  # (=cv.CAP_PROP_FPS)
+    print('프레임 너비 : %d, 프레임 높이 : %d, 초당 프레임 수 : %d' %(width, height, fps))
 
 if __name__ == '__main__':
+    
+    #임시로 유튭으로 만
+    print("url을 입력하시오")
+    link = input("")
+    ydl_opts = {
+    'outtmpl': 'video',
+    'videoformat' : "mkv",
+    'postprocessors': [{
+        'key': 'FFmpegVideoConvertor',
+        'preferedformat': 'mkv',  # one of avi, flv, mkv, mp4, ogg, webm
+    }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([link])
+
     args = get_args()
 
     # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
@@ -177,18 +203,19 @@ if __name__ == '__main__':
     testpath = "./testdata"
     resultpath = "./resultdata"
     weightsFilePath = "./"+str(args.weightfile)
-    if(!os.path.isdir(testpath)):
+    if(not os.path.isdir(testpath)):
         os.mkdir(testpath)
-    if(!os.path.isdir(resultpath)):
+    if(not os.path.isdir(resultpath)):
         os.mkdir(resultpath)
-    if(!os.path.isfile(weightsFilePath)):
+    if(not os.path.isfile(weightsFilePath)):
         os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
         args.weightfile = "./yolov4.weights"
 
-    if args.imgfile:
-        detect_cv2(args.cfgfile, args.weightfile, args.imgfile)
-        # detect_imges(args.cfgfile, args.weightfile)
-        # detect_cv2(args.cfgfile, args.weightfile, args.imgfile)
-        # detect_skimage(args.cfgfile, args.weightfile, args.imgfile)
-    else:
-        detect_cv2_camera(args.cfgfile, args.weightfile)
+    info(args.videofile)
+    files = makeImage()
+
+    for i in range (0, len(files)):
+        imagesPath = "./testdata/"+files[i]
+        print(files[i]+"를 학습데이터로 전환합니다.")
+        detect_cv2(args.cfgfile, args.weightfile, imagesPath)
+
