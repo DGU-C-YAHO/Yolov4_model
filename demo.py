@@ -18,6 +18,7 @@ from tool.utils import *
 from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
 import argparse
+import youtube_dl
 
 """hyper parameters"""
 use_cuda = True
