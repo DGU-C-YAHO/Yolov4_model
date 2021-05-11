@@ -19,6 +19,7 @@ from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
 import argparse
 import youtube_dl
+import os
 
 """hyper parameters"""
 use_cuda = True
@@ -149,9 +150,41 @@ def get_args():
 
     return args
 
+def makeImage():  
+    # ffmpeg 기능
+    # 다운로드한 영상을 ffmpeg을 이용해 원하는 포멧으로 변환(copy)
+    # -ss [시작시간] 
+    # -t [길이만큼 동영상을 뽑아냄] 
+    # -i [input 동영상이름] 
+    # -r [프레임레이트, 원본의 fps보다 높이 설정하면 의미 없다.]
+    # -s [출력해상도, 설정 안할시 원본 해상도] 
+    # -qscale:v 2 -f image2 [이미지이름]
+    # eg) -t 설정 : 10, -r 설정 : 24  =>  초당 24 프레임 추출 x 10초 = 240장
+    os.system("ffmpeg -i video.mkv -ss 00:00:00 -t 10 -r 4 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg")
+    
+    # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
+    files = [f for f in listdir('/content/drive/MyDrive/YoloV4/darknet/testdata') if isfile(join('/content/drive/MyDrive/YoloV4/darknet/testdata', f))]
+
+    # test image 목록 출력
+    print("생성된 test-data 목록은 다음과 같습니다.")
+    print(files)
 
 if __name__ == '__main__':
     args = get_args()
+
+    # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
+    # weight 파일이 위치한 곳에 없을때의 예외처리들
+    testpath = "./testdata"
+    resultpath = "./resultdata"
+    weightsFilePath = "./"+str(args.weightfile)
+    if(!os.path.isdir(testpath)):
+        os.mkdir(testpath)
+    if(!os.path.isdir(resultpath)):
+        os.mkdir(resultpath)
+    if(!os.path.isfile(weightsFilePath)):
+        os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
+        args.weightfile = "./yolov4.weights"
+
     if args.imgfile:
         detect_cv2(args.cfgfile, args.weightfile, args.imgfile)
         # detect_imges(args.cfgfile, args.weightfile)
