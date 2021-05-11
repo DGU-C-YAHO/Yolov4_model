@@ -111,6 +111,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
 
     width = img.shape[1]
     height = img.shape[0]
+    check = False
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = int(box[0] * width)
@@ -133,9 +134,12 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             blue = get_color(0, offset, classes)
             if color is None:
                 rgb = (red, green, blue)
-            img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-        img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
-    if(len(boxes) > 0):
+            if(class_names[cls_id]=='car'):
+                check = True
+                img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
+                img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
+    
+    if(check):
         return img
     else:
         return None
