@@ -52,40 +52,6 @@ def detect_cv2(imgfile, m):
     if(img is not None):
         resultimage.append(img)
 
-def detect_skimage(cfgfile, weightfile, imgfile):
-    from skimage import io
-    from skimage.transform import resize
-    m = Darknet(cfgfile)
-
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if use_cuda:
-        m.cuda()
-
-    num_classes = m.num_classes
-    if num_classes == 20:
-        namesfile = 'data/voc.names'
-    elif num_classes == 80:
-        namesfile = 'data/coco.names'
-    else:
-        namesfile = 'data/x.names'
-    class_names = load_class_names(namesfile)
-
-    img = io.imread(imgfile)
-    sized = resize(img, (m.width, m.height)) * 255
-
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.4, 0.4, use_cuda)
-        finish = time.time()
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-
-    plot_boxes_cv2(img, boxes, savename='predictions.jpg', class_names=class_names)
-
-
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
     parser.add_argument('-cfgfile', type=str, default='./cfg/yolov4.cfg',
@@ -185,5 +151,5 @@ if __name__ == '__main__':
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(args.cfgfile, args.weightfile, imagesPath,m)
+        detect_cv2(imagesPath,m)
     saveImage()
