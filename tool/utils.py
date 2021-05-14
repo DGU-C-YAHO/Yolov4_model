@@ -95,8 +95,7 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     return np.array(keep)
 
 
-
-def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
+def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
     import cv2
     img = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
@@ -108,21 +107,22 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         ratio = ratio - i
         r = (1 - ratio) * colors[i][c] + ratio * colors[j][c]
         return int(r * 255)
-
+    imgArr= []
     width = img.shape[1]
     height = img.shape[0]
     check = False
     for i in range(len(boxes)):
+        postImg = img
         box = boxes[i]
         x1 = int(box[0] * width)
         y1 = int(box[1] * height)
         x2 = int(box[2] * width)
         y2 = int(box[3] * height)
-
         if color:
             rgb = color
         else:
             rgb = (255, 0, 0)
+
         if len(box) >= 7 and class_names:
             cls_conf = box[5]
             cls_id = box[6]
@@ -134,13 +134,16 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             blue = get_color(0, offset, classes)
             if color is None:
                 rgb = (red, green, blue)
-            if(class_names[cls_id]=='car'):
-                check = True
-                img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-                img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
-    
+            for label in labelName:
+                if(class_names[cls_id]==label):
+                    check = True
+                    postImg = cv2.putText(postImg, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
+                    postImg = cv2.rectangle(postImg, (x1, y1), (x2, y2), rgb, 1)
+                    # 어노테이션 함수 
+                    imgArr.append(postImg)
+
     if(check):
-        return img
+        return imgArr
     else:
         return None
 
@@ -164,8 +167,6 @@ def load_class_names(namesfile):
         line = line.rstrip()
         class_names.append(line)
     return class_names
-
-
 
 def post_processing(img, conf_thresh, nms_thresh, output):
 

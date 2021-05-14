@@ -26,15 +26,8 @@ from os.path import join, isfile
 use_cuda = True
 resultimage = []
 
-def detect_cv2(cfgfile, weightfile, imgfile):
+def detect_cv2(labelName,imgfile, m):
     import cv2
-    m = Darknet(cfgfile)
-
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if use_cuda:
-        m.cuda()
 
     num_classes = m.num_classes
     if num_classes == 20:
@@ -55,43 +48,9 @@ def detect_cv2(cfgfile, weightfile, imgfile):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-    img = plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
-    if(img is not None):
-        resultimage.append(img)
-
-def detect_skimage(cfgfile, weightfile, imgfile):
-    from skimage import io
-    from skimage.transform import resize
-    m = Darknet(cfgfile)
-
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if use_cuda:
-        m.cuda()
-
-    num_classes = m.num_classes
-    if num_classes == 20:
-        namesfile = 'data/voc.names'
-    elif num_classes == 80:
-        namesfile = 'data/coco.names'
-    else:
-        namesfile = 'data/x.names'
-    class_names = load_class_names(namesfile)
-
-    img = io.imread(imgfile)
-    sized = resize(img, (m.width, m.height)) * 255
-
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.4, 0.4, use_cuda)
-        finish = time.time()
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-
-    plot_boxes_cv2(img, boxes, savename='predictions.jpg', class_names=class_names)
-
+    imgArr = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    if(imgArr is not None):
+        resultimage.extend(imgArr)
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
@@ -103,6 +62,7 @@ def get_args():
     parser.add_argument('-videofile', type=str,
                         default='./video.mkv',
                         help='path of your video file.', dest='videofile')
+    parser.add_argument('-labelName',type=str,help='학습 데이터 생성 라벨 입력',dest='labelName',action='append')
     args = parser.parse_args()
 
     return args
@@ -146,7 +106,7 @@ def saveImage():
         cv2.imwrite(output,img)
 
 if __name__ == '__main__':
-    
+    import shutil
     #임시로 유튭으로 만
     print("url을 입력하시오")
     link = input("")
@@ -161,20 +121,33 @@ if __name__ == '__main__':
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
 
+    # 모델 네트워트 로딩 -----------------------
     args = get_args()
+    m = Darknet(args.cfgfile)
+    m.load_weights(args.weightfile)
+    print('Loading weights from %s... Done!' % (args.weightfile))
+    if use_cuda:
+        m.cuda()
+    # ------------------------------------------
 
     # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
     # weight 파일이 위치한 곳에 없을때의 예외처리들
     testpath = "./testdata"
     resultpath = "./resultdata"
-    weightsFilePath = "./"+str(args.weightfile)
-    if(not os.path.isdir(testpath)):
-        os.mkdir(testpath)
-    if(not os.path.isdir(resultpath)):
-        os.mkdir(resultpath)
+    weightsFilePath = str(args.weightfile)
+
+    if(os.path.isdir(testpath)):
+        shutil.rmtree(testpath)
+    if(os.path.isdir(resultpath)):
+        shutil.rmtree(resultpath)
+    
+    os.mkdir(testpath)
+    os.mkdir(resultpath)
+    # --------------------------------------------------------------
     if(not os.path.isfile(weightsFilePath)):
         os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
         args.weightfile = "./yolov4.weights"
+    # -----------------------------------------------------------------
 
     info(args.videofile)
     files = makeImage()
@@ -182,5 +155,6 @@ if __name__ == '__main__':
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(args.cfgfile, args.weightfile, imagesPath)
+        detect_cv2(args.labelName,imagesPath,m)
+
     saveImage()
