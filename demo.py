@@ -25,6 +25,7 @@ from os.path import join, isfile
 """hyper parameters"""
 use_cuda = True
 resultimage = []
+Annotation = []
 
 def detect_cv2(labelName,imgfile, m):
     import cv2
@@ -48,9 +49,11 @@ def detect_cv2(labelName,imgfile, m):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-    img = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    annotation = []
+    img, annotation = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
         resultimage.append(img)
+        Annotation.append(annotation)
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
@@ -80,7 +83,7 @@ def makeImage():
     os.system("ffmpeg -i video.mkv -ss 00:00:00 -t 10 -r 4 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg")
     
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
-    files = [f for f in os.listdir('/content/drive/MyDrive/YoloV4/darknet/testdata') if isfile(join('/content/drive/MyDrive/YoloV4/darknet/testdata', f))]
+    files = [f for f in os.listdir('./testdata') if isfile(join('./testdata', f))]
 
     # test image 목록 출력
     print("생성된 test-data 목록은 다음과 같습니다.")
@@ -104,6 +107,20 @@ def saveImage():
         output = "./resultdata/test-%d.jpg" % (i+1)
         print("savepath"+output)
         cv2.imwrite(output,img)
+
+def saveAnnotation():
+    for i in range(len(Annotation)):
+        output = "./resultdata/test-%d.txt" % (i+1)
+        print("savepath"+output)
+        f = open("./resultdata/test-%d.txt" % (i+1), 'w')
+        for j in range(len(Annotation[i])):
+          if (j == 0):
+            data = "%d " % Annotation[i][j]
+          else:
+            data = "%f " % Annotation[i][j]
+          f.write(data)
+        f.close()
+
 
 if __name__ == '__main__':
     import shutil
@@ -154,3 +171,4 @@ if __name__ == '__main__':
         print(files[i]+"를 학습데이터로 전환합니다.")
         detect_cv2(args.labelName,imagesPath,m)
     saveImage()
+    saveAnnotation()

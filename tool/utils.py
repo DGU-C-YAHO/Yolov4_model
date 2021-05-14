@@ -95,7 +95,6 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     return np.array(keep)
 
 
-
 def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
     import cv2
     img = np.copy(img)
@@ -139,11 +138,18 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
                     check = True
                     img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
                     img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
+                    print("-----------------------annotation----------------------------------")
+                    annotation = []
+                    annotation.append(cls_id)
+                    annotation.append(box[0])
+                    annotation.append(box[1])
+                    annotation.append(box[2])
+                    annotation.append(box[3])
     
     if(check):
-        return img
+        return img, annotation
     else:
-        return None
+        return None, None
 
 
 def read_truths(lab_path):
