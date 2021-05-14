@@ -49,11 +49,17 @@ def detect_cv2(labelName,imgfile, m):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
+<<<<<<< HEAD
     annotation = []
     img, annotation = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
         resultimage.append(img)
         Annotation.append(annotation)
+=======
+    imgArr = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    if(imgArr is not None):
+        resultimage.extend(imgArr)
+>>>>>>> e4b14c5c2e7f532207b2c0a29e932505d9c21a14
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
@@ -138,18 +144,20 @@ if __name__ == '__main__':
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
 
+    # 모델 네트워트 로딩 -----------------------
     args = get_args()
     m = Darknet(args.cfgfile)
     m.load_weights(args.weightfile)
     print('Loading weights from %s... Done!' % (args.weightfile))
     if use_cuda:
         m.cuda()
+    # ------------------------------------------
 
     # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
     # weight 파일이 위치한 곳에 없을때의 예외처리들
     testpath = "./testdata"
     resultpath = "./resultdata"
-    weightsFilePath = "./"+str(args.weightfile)
+    weightsFilePath = str(args.weightfile)
 
     if(os.path.isdir(testpath)):
         shutil.rmtree(testpath)
@@ -158,10 +166,11 @@ if __name__ == '__main__':
     
     os.mkdir(testpath)
     os.mkdir(resultpath)
-
+    # --------------------------------------------------------------
     if(not os.path.isfile(weightsFilePath)):
         os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
         args.weightfile = "./yolov4.weights"
+    # -----------------------------------------------------------------
 
     info(args.videofile)
     files = makeImage()
@@ -170,5 +179,6 @@ if __name__ == '__main__':
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
         detect_cv2(args.labelName,imagesPath,m)
+
     saveImage()
     saveAnnotation()
