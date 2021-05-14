@@ -86,7 +86,21 @@ def makeImage():
     # -s [출력해상도, 설정 안할시 원본 해상도] 
     # -qscale:v 2 -f image2 [이미지이름]
     # eg) -t 설정 : 10, -r 설정 : 24  =>  초당 24 프레임 추출 x 10초 = 240장
-    os.system("ffmpeg -i video.mkv -ss 00:00:00 -t 10 -r 4 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg")
+    import cv2
+    cap = cv2.VideoCapture("./testVideo.mkv")
+    if not cap.isOpened():
+        print("could not open :", infilename)
+        exit(0)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    time = length // fps
+    minu = int(time // 60)
+    sec = int(time % 60)
+    
+    #os.system('./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights testdata/{}'.format(images))
+    print("ffmpeg으로 자를 영상의 종료 지점, 프레임수를 공백으로 입력하시오 ( 영상은 "  +str(minu) +"분 " +str(sec) +"초 입니다.)")
+    timeInfo, frame = map(int, input().split())
+    os.system("ffmpeg -i video.mkv -ss 00:00:00 -t {} -r {} -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(timeInfo, frame))
     
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
     files = [f for f in os.listdir('./testdata') if isfile(join('./testdata', f))]
