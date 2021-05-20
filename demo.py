@@ -20,8 +20,11 @@ from tool.darknet2pytorch import Darknet
 import argparse
 import youtube_dl
 import os
+import os, glob
+import os.path
+import cv2
 from os.path import join, isfile
-
+ 
 """hyper parameters"""
 use_cuda = True
 resultimage = []
@@ -49,17 +52,12 @@ def detect_cv2(labelName,imgfile, m):
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-<<<<<<< HEAD
+
     annotation = []
     img, annotation = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
         resultimage.append(img)
         Annotation.append(annotation)
-=======
-    imgArr = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
-    if(imgArr is not None):
-        resultimage.extend(imgArr)
->>>>>>> e4b14c5c2e7f532207b2c0a29e932505d9c21a14
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
@@ -76,6 +74,19 @@ def get_args():
 
     return args
 
+# 영상 길이 구하는 함수
+def getVideoInfo(filename):
+    cap = cv2.VideoCapture(filename)
+    if not cap.isOpened():
+        print("could not open :", filename)
+        exit(0)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    time = length // fps
+    minu = int(time // 60)
+    sec = int(time % 60)
+    print("ffmpeg으로 자를 영상의 종료 지점, 프레임수를 공백으로 입력하시오 ( 영상은 "  +str(minu) +"분 " +str(sec) +"초 입니다.)")
+
 def makeImage():  
     # ffmpeg 기능
     # 다운로드한 영상을 ffmpeg을 이용해 원하는 포멧으로 변환(copy)
@@ -86,21 +97,12 @@ def makeImage():
     # -s [출력해상도, 설정 안할시 원본 해상도] 
     # -qscale:v 2 -f image2 [이미지이름]
     # eg) -t 설정 : 10, -r 설정 : 24  =>  초당 24 프레임 추출 x 10초 = 240장
-    import cv2
-    cap = cv2.VideoCapture("./testVideo.mkv")
-    if not cap.isOpened():
-        print("could not open :", infilename)
-        exit(0)
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    time = length // fps
-    minu = int(time // 60)
-    sec = int(time % 60)
-    
-    #os.system('./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights testdata/{}'.format(images))
-    print("ffmpeg으로 자를 영상의 종료 지점, 프레임수를 공백으로 입력하시오 ( 영상은 "  +str(minu) +"분 " +str(sec) +"초 입니다.)")
+
+    filename = "./video." + fileExtension # 파일 이름을 확장자를 붙여 만듬
+    getVideoInfo(filename) # 그 후 비디오 정보 출력하는 함수 호출
+
     timeInfo, frame = map(int, input().split())
-    os.system("ffmpeg -i video.mkv -ss 00:00:00 -t {} -r {} -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(timeInfo, frame))
+    os.system("ffmpeg -i video.{} -ss 00:00:00 -t {} -r {} -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(fileExtension, timeInfo, frame))
     
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
     files = [f for f in os.listdir('./testdata') if isfile(join('./testdata', f))]
@@ -141,22 +143,26 @@ def saveAnnotation():
           f.write(data)
         f.close()
 
+# 파일 확장자 추출하는 함수
+def extractExtension(): 
+    targerdir = r"./" # 상대 경로로 현재 경로를 targetdir으로 설정
+    files = os.listdir(targerdir)
+    condition = 'video.*' # 와일드 문자 이용해서 video로 시작하는것 불러오기
+    csvfiles = glob.glob(condition)
+    csvfiles = str(csvfiles)
+    global fileExtension # global 변수 filename
+    fileExtension = os.path.splitext(csvfiles)[1] 
+    fileExtension = fileExtension[1:-2] # 파일 확장자를 뽑아냄
 
 if __name__ == '__main__':
     import shutil
-    #임시로 유튭으로 만
-    print("url을 입력하시오")
-    link = input("")
-    ydl_opts = {
-    'outtmpl': 'video',
-    'videoformat' : "mkv",
-    'postprocessors': [{
-        'key': 'FFmpegVideoConvertor',
-        'preferedformat': 'mkv',  # one of avi, flv, mkv, mp4, ogg, webm
-    }],
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([link])
+    # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
+    print("url 입력하세요")
+    link = input()
+    os.system("youtube-dl -o \"video.%(ext)s\" {}".format(link))
+
+    # 파일 확장자 추출 메소드 호출 후
+    extractExtension()
 
     # 모델 네트워트 로딩 -----------------------
     args = get_args()

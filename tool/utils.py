@@ -137,7 +137,6 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
             for label in labelName:
                 if(class_names[cls_id]==label):
                     check = True
-<<<<<<< HEAD
                     img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
                     img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
                     print("-----------------------annotation----------------------------------")
@@ -150,15 +149,6 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
     
     if(check):
         return img, annotation
-=======
-                    postImg = cv2.putText(postImg, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-                    postImg = cv2.rectangle(postImg, (x1, y1), (x2, y2), rgb, 1)
-                    # 어노테이션 함수 
-                    imgArr.append(postImg)
-
-    if(check):
-        return imgArr
->>>>>>> e4b14c5c2e7f532207b2c0a29e932505d9c21a14
     else:
         return None, None
 
