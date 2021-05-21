@@ -94,7 +94,6 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     
     return np.array(keep)
 
-
 def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
     import cv2
     img1 = np.copy(img)
@@ -119,12 +118,14 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
         y1 = int(box[1] * height)
         x2 = int(box[2] * width)
         y2 = int(box[3] * height)
+
+
         if color:
             rgb = color
         else:
             rgb = (255, 0, 0)
 
-        if len(box) >= 7 and class_names:
+        if len(box) >= 7 and class_names and x1 >= 0 and x2 <= width and y1 >= 0 and y2 <=height :
             cls_conf = box[5]
             cls_id = box[6]
             print('%s: %f' % (class_names[cls_id], cls_conf))
