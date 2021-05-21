@@ -154,6 +154,18 @@ def extractExtension():
     fileExtension = os.path.splitext(csvfiles)[1] 
     fileExtension = fileExtension[1:-2] # 파일 확장자를 뽑아냄
 
+# 실행후 video 삭제 하기
+def deleteVideo():
+    print("실행 완료 video를 삭제합니다")
+    targerdir = r"./" # 상대 경로로 현재 경로를 targetdir으로 설정
+    files = os.listdir(targerdir)
+    condition = 'video.*' # 와일드 문자 이용해서 video로 시작하는것 불러오기
+    if condition != None:
+        csvfiles = glob.glob(condition)
+        csvfiles = str(csvfiles)
+        obj = csvfiles[2:-2]
+        os.remove(obj)
+
 if __name__ == '__main__':
     import shutil
     # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
@@ -202,3 +214,7 @@ if __name__ == '__main__':
 
     saveImage()
     saveAnnotation()
+  
+    deleteVideo() 
+    print("삭제 완료")
+    
