@@ -56,8 +56,8 @@ def detect_cv2(labelName,imgfile, m):
     annotation = []
     img, annotation = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
-        resultimage.append(img)
-        Annotation.append(annotation)
+        resultimage.extend(img)
+        Annotation.extend(annotation)
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')

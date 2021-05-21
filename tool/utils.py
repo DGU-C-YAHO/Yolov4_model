@@ -97,7 +97,7 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
 
 def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
     import cv2
-    img = np.copy(img)
+    img1 = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
 
     def get_color(c, x, max_val):
@@ -108,11 +108,12 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
         r = (1 - ratio) * colors[i][c] + ratio * colors[j][c]
         return int(r * 255)
     imgArr= []
-    width = img.shape[1]
-    height = img.shape[0]
+    annotationArr = []
+    width = img1.shape[1]
+    height = img1.shape[0]
     check = False
     for i in range(len(boxes)):
-        postImg = img
+        postImg = np.copy(img)
         box = boxes[i]
         x1 = int(box[0] * width)
         y1 = int(box[1] * height)
@@ -137,18 +138,20 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
             for label in labelName:
                 if(class_names[cls_id]==label):
                     check = True
-                    img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-                    img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
-                    print("-----------------------annotation----------------------------------")
+                    postImg = cv2.putText(postImg, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
+                    postImg = cv2.rectangle(postImg, (x1, y1), (x2, y2), rgb, 1)
+                    imgArr.append(postImg)
+                    print("-----------------------annotation----------------------------")
                     annotation = []
                     annotation.append(cls_id)
                     annotation.append(box[0])
                     annotation.append(box[1])
                     annotation.append(box[2])
                     annotation.append(box[3])
+                    annotationArr.append(annotation)
     
     if(check):
-        return img, annotation
+        return imgArr, annotationArr
     else:
         return None, None
 
