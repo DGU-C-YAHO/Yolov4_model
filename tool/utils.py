@@ -119,7 +119,27 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
         x2 = int(box[2] * width)
         y2 = int(box[3] * height)
 
-
+        chT = True
+        for t in range(len(boxes)):
+            tBox = boxes[t]
+            if tBox[0] < box[0] and  box[0] < tBox[2]:
+                chT = False
+                break
+            else:
+                if tBox[0] < box[2] and box[2] < tBox[2]:
+                    chT = False
+                    break
+                else:
+                    if tBox[1] < box[1] and box[1] < tBox[3]:
+                        chT = False
+                        break
+                    else:
+                        if tBox[1] < box[3] and box[3] < tBox[3]:
+                            chT = False
+                            break
+        if chT == False:
+            continue 
+            
         if color:
             rgb = color
         else:
