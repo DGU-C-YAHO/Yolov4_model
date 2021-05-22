@@ -119,6 +119,21 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
         x2 = int(box[2] * width)
         y2 = int(box[3] * height)
 
+        # 프레임을 넘어가는 물체 제거-----------------------------
+        if x1 >= 0 and x2 <= width and y1 >= 0 and y2 <=height:
+            continue
+        # --------------------------------------------------------
+
+        # 너무 작은 물체 제거------------------------
+        imgWidth = x2-x1
+        imgHeight = y2-y1
+
+        if 0.05 > ((imgWidth*imgHeight)/(width*height)):
+            continue
+        # 여기 작은 물체는 나중에 따로 사용자가 출력 받아서 선택할 수 있게 해볼 계획
+        #-----------------------------------------------
+
+        # 겹치는 물체 제거-------------------------
         chT = True
         for t in range(len(boxes)):
             tBox = boxes[t]
@@ -139,13 +154,13 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
                             break
         if chT == False:
             continue 
-            
+        #---------------------------------------------------    
         if color:
             rgb = color
         else:
             rgb = (255, 0, 0)
 
-        if len(box) >= 7 and class_names and x1 >= 0 and x2 <= width and y1 >= 0 and y2 <=height :
+        if len(box) >= 7 and class_names :
             cls_conf = box[5]
             cls_id = box[6]
             print('%s: %f' % (class_names[cls_id], cls_conf))

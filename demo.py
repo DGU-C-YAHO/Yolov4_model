@@ -71,7 +71,6 @@ def get_args():
                         help='path of your video file.', dest='videofile')
     parser.add_argument('-labelName',type=str,help='학습 데이터 생성 라벨 입력',dest='labelName',action='append')
     args = parser.parse_args()
-
     return args
 
 # 영상 길이 구하는 함수
