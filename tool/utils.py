@@ -179,10 +179,10 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
                     print("-----------------------annotation----------------------------")
                     annotation = []
                     annotation.append(cls_id)
-                    annotation.append(box[0])
-                    annotation.append(box[1])
-                    annotation.append(box[2])
-                    annotation.append(box[3])
+                    annotation.append((box[0] + box[2]) / 2)
+                    annotation.append((box[1] + box[3]) / 2)
+                    annotation.append(box[2] - box[0])
+                    annotation.append(box[3] - box[1])
                     annotationArr.append(annotation)
     
     if(check):
