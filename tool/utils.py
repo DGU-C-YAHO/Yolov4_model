@@ -120,14 +120,13 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
         y2 = int(box[3] * height)
 
         # 프레임을 넘어가는 물체 제거-----------------------------
-        if x1 >= 0 and x2 <= width and y1 >= 0 and y2 <=height:
+        if not(x1 >= 0 and x2 <= width and y1 >= 0 and y2 <=height):
             continue
         # --------------------------------------------------------
 
         # 너무 작은 물체 제거------------------------
         imgWidth = x2-x1
         imgHeight = y2-y1
-
         if 0.05 > ((imgWidth*imgHeight)/(width*height)):
             continue
         # 여기 작은 물체는 나중에 따로 사용자가 출력 받아서 선택할 수 있게 해볼 계획

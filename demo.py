@@ -100,14 +100,11 @@ def makeImage(timeInfo):
     # -s [출력해상도, 설정 안할시 원본 해상도] 
     # -qscale:v 2 -f image2 [이미지이름]
     # eg) -t 설정 : 10, -r 설정 : 24  =>  초당 24 프레임 추출 x 10초 = 240장
-
     filename = "./video." + fileExtension # 파일 이름을 확장자를 붙여 만듬
     getVideoInfo(filename) # 그 후 비디오 정보 출력하는 함수 호출
-    os.system("ffmpeg -i video.{} -ss 00:00:00 -t {} -r 2 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(fileExtension, timeInfo))
-    
+    os.system("ffmpeg -i video.{} -ss 00:00:00 -t {} -r 2 -s {}x{} -qscale:v 2 -f image2 testdata/test-%d.jpg".format(fileExtension, timeInfo, width, height))
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
     files = [f for f in os.listdir('./testdata') if isfile(join('./testdata', f))]
-
     # test image 목록 출력
     print("생성된 test-data 목록은 다음과 같습니다.")
     print(files)
@@ -115,12 +112,15 @@ def makeImage(timeInfo):
 
 def info(videoPath):
     import cv2
+    global width, height
     # VideoCapture 객체 정의
     cap = cv2.VideoCapture(videoPath)
     # 프레임 너비/높이, 초당 프레임 수 확인
     width = cap.get(3)  # (=cv.CAP_PROP_FRAME_WIDTH)
     height = cap.get(4) # (=cv.CAP_PROP_FRAME_HEIGHT)
     fps = cap.get(5)  # (=cv.CAP_PROP_FPS)
+    width = int(width)
+    height = int(height)
     print('프레임 너비 : %d, 프레임 높이 : %d, 초당 프레임 수 : %d' %(width, height, fps))
 
 def saveImage():
