@@ -70,6 +70,10 @@ def get_args():
                         default='./video.mkv',
                         help='path of your video file.', dest='videofile')
     parser.add_argument('-labelName',type=str,help='학습 데이터 생성 라벨 입력',dest='labelName',action='append')
+    parser.add_argument('-urlLink', type=str,
+                        default='./https://www.youtube.com/watch?v=03eU5eMhGZk', dest = 'urlLink') # url
+    parser.add_argument('-endTime', type=int,
+                        default=10, dest='endTime') # 종료시간
     args = parser.parse_args()
     return args
 
@@ -84,9 +88,9 @@ def getVideoInfo(filename):
     time = length // fps
     minu = int(time // 60)
     sec = int(time % 60)
-    print("ffmpeg으로 자를 영상의 종료 지점, 프레임수를 공백으로 입력하시오 ( 영상은 "  +str(minu) +"분 " +str(sec) +"초 입니다.)")
+    print("ffmpeg으로 자를 영상의 종료 지점을 입력하시오 ( 영상은 "  +str(minu) +"분 " +str(sec) +"초 입니다.)")
 
-def makeImage():  
+def makeImage(timeInfo):  
     # ffmpeg 기능
     # 다운로드한 영상을 ffmpeg을 이용해 원하는 포멧으로 변환(copy)
     # -ss [시작시간] 
@@ -99,9 +103,7 @@ def makeImage():
 
     filename = "./video." + fileExtension # 파일 이름을 확장자를 붙여 만듬
     getVideoInfo(filename) # 그 후 비디오 정보 출력하는 함수 호출
-
-    timeInfo, frame = map(int, input().split())
-    os.system("ffmpeg -i video.{} -ss 00:00:00 -t {} -r {} -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(fileExtension, timeInfo, frame))
+    os.system("ffmpeg -i video.{} -ss 00:00:00 -t {} -r 2 -s 1280x720 -qscale:v 2 -f image2 testdata/test-%d.jpg".format(fileExtension, timeInfo))
     
     # 변환된(프레임 이미지화된) test image들을 files 배열에 집어넣는다.
     files = [f for f in os.listdir('./testdata') if isfile(join('./testdata', f))]
@@ -168,15 +170,15 @@ def deleteVideo():
 if __name__ == '__main__':
     import shutil
     # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
-    print("url 입력하세요")
-    link = input()
+    # 동영상 url 링크 로딩 ----------------------
+    args = get_args()
+    link = args.urlLink
     os.system("youtube-dl -o \"video.%(ext)s\" {}".format(link))
 
     # 파일 확장자 추출 메소드 호출 후
     extractExtension()
 
     # 모델 네트워트 로딩 -----------------------
-    args = get_args()
     m = Darknet(args.cfgfile)
     m.load_weights(args.weightfile)
     print('Loading weights from %s... Done!' % (args.weightfile))
@@ -204,7 +206,8 @@ if __name__ == '__main__':
     # -----------------------------------------------------------------
 
     info(args.videofile)
-    files = makeImage()
+    timeInfo = args.endTime
+    files = makeImage(timeInfo)
 
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
@@ -216,4 +219,6 @@ if __name__ == '__main__':
   
     deleteVideo() 
     print("삭제 완료")
+
+    print()
     
