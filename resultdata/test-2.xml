@@ -1,0 +1,24 @@
+<annotation>
+    <filename>test-2</filename>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>608</width>
+        <height>608</height>
+        <depth>{}</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>car</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>0.005256682634353638</xmin>
+            <ymin>0.31801921129226685</ymin>
+            <xmax>0.6635810136795044</xmax>
+            <ymax>0.86190265417099</ymax>
+        </bndbox>
+    </object>
+</annotation>

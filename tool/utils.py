@@ -7,6 +7,7 @@ import numpy as np
 import itertools
 import struct  # get_image_size
 import imghdr  # get_image_size
+from tool.make_annotation import *
 
 
 def sigmoid(x):
@@ -94,7 +95,7 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     
     return np.array(keep)
 
-def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=None):
+def plot_boxes_cv2(labelName, annotationType,img, boxes, savename=None, class_names=None, color=None):
     import cv2
     img1 = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
@@ -177,14 +178,10 @@ def plot_boxes_cv2(labelName,img, boxes, savename=None, class_names=None, color=
                     postImg = cv2.rectangle(postImg, (x1, y1), (x2, y2), rgb, 1)
                     imgArr.append(postImg)
                     print("-----------------------annotation----------------------------")
-                    annotation = []
-                    annotation.append(cls_id)
-                    annotation.append((box[0] + box[2]) / 2)
-                    annotation.append((box[1] + box[3]) / 2)
-                    annotation.append(box[2] - box[0])
-                    annotation.append(box[3] - box[1])
-                    annotationArr.append(annotation)
-    
+                    if(annotationType=='txt'):
+                        annotationArr.append( makeTXT(cls_id,box))
+                    elif(annotationType=='xml'):
+                        annotationArr.append(makeXML(cls_id,box,class_names[cls_id]))
     if(check):
         return imgArr, annotationArr
     else:

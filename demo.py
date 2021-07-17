@@ -15,6 +15,7 @@
 # from PIL import Image, ImageDraw
 # from models.tiny_yolo import TinyYoloNet
 from tool.utils import *
+from tool.make_annotation import *
 from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
 import argparse
@@ -30,7 +31,7 @@ use_cuda = True
 resultimage = []
 Annotation = []
 
-def detect_cv2(labelName,imgfile, m):
+def detect_cv2(annotationType,labelName,imgfile, m):
     import cv2
 
     num_classes = m.num_classes
@@ -54,7 +55,7 @@ def detect_cv2(labelName,imgfile, m):
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
 
     annotation = []
-    img, annotation = plot_boxes_cv2(labelName,img, boxes[0], savename='predictions.jpg', class_names=class_names)
+    img, annotation = plot_boxes_cv2(labelName,annotationType,img, boxes[0], savename='predictions.jpg', class_names=class_names)
     if(img is not None):
         resultimage.extend(img)
         Annotation.extend(annotation)
@@ -70,8 +71,11 @@ def get_args():
                         default='./video.mkv',
                         help='path of your video file.', dest='videofile')
     parser.add_argument('-labelName',type=str,help='학습 데이터 생성 라벨 입력',dest='labelName',action='append')
+
+    parser.add_argument('-annotationType',type=str,help='어노테이션 타입 설정',dest='annotationType',default='txt')
+
     parser.add_argument('-urlLink', type=str,
-                        default='./https://www.youtube.com/watch?v=03eU5eMhGZk', dest = 'urlLink') # url
+                        default='https://www.youtube.com/watch?v=03eU5eMhGZk', dest = 'urlLink') # url
     parser.add_argument('-endTime', type=int,
                         default=10, dest='endTime') # 종료시간
     args = parser.parse_args()
@@ -212,10 +216,14 @@ if __name__ == '__main__':
     for i in range (0, len(files)):
         imagesPath = "./testdata/"+files[i]
         print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(args.labelName,imagesPath,m)
+        detect_cv2(args.annotationType,args.labelName,imagesPath,m)
 
     saveImage()
-    saveAnnotation()
+    #saveAnnotation()
+    if (args.annotationType=='txt'):
+        saveTxtAnnotation(Annotation)
+    elif(args.annotationType=='xml'):
+        saveXmlAnnotation(m.width, m.height,Annotation)
   
     deleteVideo() 
     print("삭제 완료")
