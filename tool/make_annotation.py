@@ -81,10 +81,10 @@ def saveXmlAnnotation(width,height,Annotation):
         data += '        <depth>3</depth>\n    </size>\n    <segmented>0</segmented>\n    <object>\n'
         data += '        <name>{}</name>\n'.format(Annotation[i][0])
         data += '        <pose>Unspecified</pose>\n        <truncated>0</truncated>\n        <difficult>0</difficult>\n        <bndbox>\n'
-        data += '            <xmin>{}</xmin>\n'.format(Annotation[i][1])
-        data += '            <ymin>{}</ymin>\n'.format(Annotation[i][2])
-        data += '            <xmax>{}</xmax>\n'.format(Annotation[i][3])
-        data += '            <ymax>{}</ymax>\n        </bndbox>\n    </object>\n</annotation>'.format(Annotation[i][4])
+        data += '            <xmin>{}</xmin>\n'.format(Annotation[i][1]*width)
+        data += '            <ymin>{}</ymin>\n'.format(Annotation[i][2]*height)
+        data += '            <xmax>{}</xmax>\n'.format(Annotation[i][3]*width)
+        data += '            <ymax>{}</ymax>\n        </bndbox>\n    </object>\n</annotation>'.format(Annotation[i][4]*height)
         f.write(data)
         f.close()
 

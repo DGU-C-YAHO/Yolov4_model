@@ -6,7 +6,7 @@
     <size>
         <width>608</width>
         <height>608</height>
-        <depth>{}</depth>
+        <depth>3</depth>
     </size>
     <segmented>0</segmented>
     <object>
@@ -15,10 +15,10 @@
         <truncated>0</truncated>
         <difficult>0</difficult>
         <bndbox>
-            <xmin>0.43549492955207825</xmin>
-            <ymin>0.5569667220115662</ymin>
-            <xmax>0.773766040802002</xmax>
-            <ymax>0.8204245567321777</ymax>
+            <xmin>264.7809171676636</xmin>
+            <ymin>338.6357669830322</ymin>
+            <xmax>470.4497528076172</xmax>
+            <ymax>498.81813049316406</ymax>
         </bndbox>
     </object>
 </annotation>

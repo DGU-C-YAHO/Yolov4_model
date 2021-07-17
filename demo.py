@@ -77,7 +77,7 @@ def get_args():
     parser.add_argument('-urlLink', type=str,
                         default='https://www.youtube.com/watch?v=03eU5eMhGZk', dest = 'urlLink') # url
     parser.add_argument('-endTime', type=int,
-                        default=10, dest='endTime') # 종료시간
+                        default=30, dest='endTime') # 종료시간
     args = parser.parse_args()
     return args
 
