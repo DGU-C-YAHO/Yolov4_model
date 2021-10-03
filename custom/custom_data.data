@@ -1,5 +1,5 @@
 classes = 2
-train = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/train.txt
-valid = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/test.txt
-names = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/classes.names
-backup = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom
+train = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/train.txt
+valid = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/test.txt
+names = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/classes.names
+backup = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom

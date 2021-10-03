@@ -78,6 +78,10 @@ def get_args():
                         default='https://www.youtube.com/watch?v=03eU5eMhGZk', dest = 'urlLink') # url
     parser.add_argument('-endTime', type=int,
                         default=30, dest='endTime') # 종료시간
+    parser.add_argument('-mode', type=bool,
+                        default=False, dest='mode') # 객체 클래스 추가
+    parser.add_argument('-className', type=str,
+                        default="", dest='className') # 객체 클래스 추가                              
     args = parser.parse_args()
     return args
 
@@ -173,60 +177,235 @@ def deleteVideo():
 
 if __name__ == '__main__':
     import shutil
-    # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
-    # 동영상 url 링크 로딩 ----------------------
     args = get_args()
-    link = args.urlLink
-    os.system("youtube-dl -o \"video.%(ext)s\" {}".format(link))
+    if args.mode == False:
+      # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
+      # 동영상 url 링크 로딩 ----------------------
+      link = args.urlLink
+      os.system("youtube-dl -o \"video.%(ext)s\" {}".format(link))
 
-    # 파일 확장자 추출 메소드 호출 후
-    extractExtension()
+      # 파일 확장자 추출 메소드 호출 후
+      extractExtension()
 
-    # 모델 네트워트 로딩 -----------------------
-    m = Darknet(args.cfgfile)
-    m.load_weights(args.weightfile)
-    print('Loading weights from %s... Done!' % (args.weightfile))
-    if use_cuda:
-        m.cuda()
-    # ------------------------------------------
+      # 모델 네트워트 로딩 -----------------------
+      m = Darknet(args.cfgfile)
+      m.load_weights(args.weightfile)
+      print('Loading weights from %s... Done!' % (args.weightfile))
+      if use_cuda:
+          m.cuda()
+      # ------------------------------------------
 
-    # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
-    # weight 파일이 위치한 곳에 없을때의 예외처리들
-    testpath = "./testdata"
-    resultpath = "./resultdata"
-    weightsFilePath = str(args.weightfile)
+      # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
+      # weight 파일이 위치한 곳에 없을때의 예외처리들
+      testpath = "./testdata"
+      resultpath = "./resultdata"
+      weightsFilePath = str(args.weightfile)
 
-    if(os.path.isdir(testpath)):
-        shutil.rmtree(testpath)
-    if(os.path.isdir(resultpath)):
-        shutil.rmtree(resultpath)
+      if(os.path.isdir(testpath)):
+          shutil.rmtree(testpath)
+      if(os.path.isdir(resultpath)):
+          shutil.rmtree(resultpath)
+      
+      os.mkdir(testpath)
+      os.mkdir(resultpath)
+      # --------------------------------------------------------------
+      if(not os.path.isfile(weightsFilePath)):
+          os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
+          args.weightfile = "./yolov4.weights"
+      # -----------------------------------------------------------------
+
+      info(args.videofile)
+      timeInfo = args.endTime
+      files = makeImage(timeInfo)
+
+      for i in range (0, len(files)):
+          imagesPath = "./testdata/"+files[i]
+          print(files[i]+"를 학습데이터로 전환합니다.")
+          detect_cv2(args.annotationType,args.labelName,imagesPath,m)
+
+      saveImage()
+      #saveAnnotation()
+      if (args.annotationType=='txt'):
+          saveTxtAnnotation(Annotation)
+      elif(args.annotationType=='xml'):
+          saveXmlAnnotation(m.width, m.height,Annotation)
     
-    os.mkdir(testpath)
-    os.mkdir(resultpath)
-    # --------------------------------------------------------------
-    if(not os.path.isfile(weightsFilePath)):
-        os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
-        args.weightfile = "./yolov4.weights"
-    # -----------------------------------------------------------------
+      deleteVideo() 
+      print("삭제 완료")
 
-    info(args.videofile)
-    timeInfo = args.endTime
-    files = makeImage(timeInfo)
+      print()
+    else: # 객체 클래스 추가 모드
+      # clone darknet repos(다크넷 설치 : 차후 실행시 이미 설치된 폴더가 있으므로 재실행 x)
+      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/")
+      os.system("git clone https://github.com/AlexeyAB/darknet")
 
-    for i in range (0, len(files)):
-        imagesPath = "./testdata/"+files[i]
-        print(files[i]+"를 학습데이터로 전환합니다.")
-        detect_cv2(args.annotationType,args.labelName,imagesPath,m)
+      # change makefile to have GPU and OPENCV enabled(gpu와 opencv 사용여부를 true로 바꿈)
+      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/darknet")
+      os.system("sed -i 's/OPENCV=0/OPENCV=1/' Makefile")
+      os.system("sed -i 's/GPU=0/GPU=1/' Makefile")
+      os.system("sed -i 's/CUDNN=0/CUDNN=1/' Makefile")
+      os.system("sed -i 's/CUDNN_HALF=0/CUDNN_HALF=1/' Makefile")
 
-    saveImage()
-    #saveAnnotation()
-    if (args.annotationType=='txt'):
-        saveTxtAnnotation(Annotation)
-    elif(args.annotationType=='xml'):
-        saveXmlAnnotation(m.width, m.height,Annotation)
-  
-    deleteVideo() 
-    print("삭제 완료")
+      # verify CUDA(쿠다 확인)
+      os.system("/usr/local/cuda/bin/nvcc --version")
 
-    print()
+      # MakeFile
+      os.system("make -j4")
+
+      classes = args.className.split(" ")
+      num = len(classes)
+
+      f = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/classes.txt", 'w')
+      for i in range(len(classes)):
+          data = classes[i] + "\n"
+          f.write(data)
+      f.close()
+
+      current_path = os.path.abspath(os.curdir)
+      COLAB_DARKNET_ESCAPE_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model' #zip file url
+      COLAB_DARKNET_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model'
+
+      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom")
+      os.system("mkdir Person/")
+      os.system("unzip /content/drive/MyDrive/Person_90_1128.zip -d ./Person/")
+
+
+      YOLO_IMAGE_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/Person'
+      YOLO_FORMAT_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model' + '/custom'
+
+      class_count = 0
+      test_percentage = 0.2
+      paths = []
+
+      with open(YOLO_FORMAT_PATH + '/' + 'classes.names', 'w') as names, \
+          open(YOLO_FORMAT_PATH + '/' + 'classes.txt', 'r') as txt:
+          for line in txt:
+              names.write(line)  
+              class_count += 1
+          print ("[classes.names] is created")
+
+      with open(YOLO_FORMAT_PATH + '/' + 'custom_data.data', 'w') as data:
+          data.write('classes = ' + str(class_count) + '\n')
+          data.write('train = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'train.txt' + '\n')
+          data.write('valid = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'test.txt' + '\n')
+          data.write('names = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'classes.names' + '\n')
+          data.write('backup = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom')
+          print ("[custom_data.data] is created")
+
+      os.chdir(YOLO_IMAGE_PATH)
+      for current_dir, dirs, files in os.walk('.'):
+          for f in files:
+              if f.endswith('.jpg'):
+                  image_path = '/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/Person/' + f
+                  paths.append(image_path + '\n')
+
+      paths_test = paths[:int(len(paths) * test_percentage)]
+      paths = paths[int(len(paths) * test_percentage):]
+
+      with open(YOLO_FORMAT_PATH + '/' + 'train.txt', 'w') as train_txt:
+          for path in paths:
+              train_txt.write(path)
+          print ("[train.txt] is created")
+
+      with open(YOLO_FORMAT_PATH + '/' + 'test.txt', 'w') as test_txt:
+          for path in paths_test:
+              test_txt.write(path)
+          print ("[test.txt] is created")
+
+      #------------------------------------------------------------------------
+
+      f = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/cfg/yolov3.cfg", 'r')
+      f2 = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.txt", 'w')
+
+      while True: 
+        line = f.readline()
+        if "checkA" in line:
+          line = line.replace("checkA", str(num * 2000),1)
+        if "checkB" in line:
+          line = line.replace("checkB", str(int(num * 2000 * 0.8)), 1)
+        if "checkC" in line:
+          line = line.replace("checkC", str(int(num * 2000 * 0.9)), 1)
+        if "checkD" in line:
+          line = line.replace("checkD", str((num + 5) * 3), 1)
+        if "checkE" in line:
+          line = line.replace("checkE", str(num), 1)
+        if not line: 
+          break
+        f2.write(line)
+      f.close()
+      f2.close()
+
+      os.system("mv /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.txt /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.cfg")
+
+      # wget명령어를 사용하여  darknet53.conv.74 다운
+      os.system("wget -P /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/ https://pjreddie.com/media/files/darknet53.conv.74")
+
+      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/darknet")
+      path = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/"
+
+      # 학습 진행
+      os.system("./darknet detector train {}/custom_data.data {}/yolov3.cfg {}/darknet53.conv.74 -dont_show".format(path, path, path))
+      
+      args.cfgfile = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.cfg"
+      args.weightfile = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3_final.weights"
+
+      # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
+      # 동영상 url 링크 로딩 ----------------------
+      link = args.urlLink
+      os.system("youtube-dl -o \"video.%(ext)s\" {}".format(link))
+
+      # 파일 확장자 추출 메소드 호출 후
+      extractExtension()
+
+      # 모델 네트워트 로딩 -----------------------
+      m = Darknet(args.cfgfile)
+      m.load_weights(args.weightfile)
+      print('Loading weights from %s... Done!' % (args.weightfile))
+      if use_cuda:
+          m.cuda()
+      # ------------------------------------------
+
+      # 동영상을 이미지로 저장할 경로와 결과 이미지를 저장할 경로 
+      # weight 파일이 위치한 곳에 없을때의 예외처리들
+      testpath = "./testdata"
+      resultpath = "./resultdata"
+      weightsFilePath = str(args.weightfile)
+
+      if(os.path.isdir(testpath)):
+          shutil.rmtree(testpath)
+      if(os.path.isdir(resultpath)):
+          shutil.rmtree(resultpath)
+      
+      os.mkdir(testpath)
+      os.mkdir(resultpath)
+      # --------------------------------------------------------------
+      if(not os.path.isfile(weightsFilePath)):
+          os.system("wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights")
+          args.weightfile = "./yolov4.weights"
+      # -----------------------------------------------------------------
+
+      info(args.videofile)
+      timeInfo = args.endTime
+      files = makeImage(timeInfo)
+
+      for i in range (0, len(files)):
+          imagesPath = "./testdata/"+files[i]
+          print(files[i]+"를 학습데이터로 전환합니다.")
+          detect_cv2(args.annotationType,args.labelName,imagesPath,m)
+
+      saveImage()
+      #saveAnnotation()
+      if (args.annotationType=='txt'):
+          saveTxtAnnotation(Annotation)
+      elif(args.annotationType=='xml'):
+          saveXmlAnnotation(m.width, m.height,Annotation)
     
+      deleteVideo() 
+      print("삭제 완료")
+
+      print()
+
+      
+
+
+          
