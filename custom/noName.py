@@ -90,8 +90,12 @@ f.close()
 f2.close()
 
 os.system("mv /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.txt /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.cfg")
+
+# wget명령어를 사용하여  darknet53.conv.74 다운
 os.system("wget -P /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/ https://pjreddie.com/media/files/darknet53.conv.74")
 
 os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/darknet")
 path = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/"
+
+# 학습 진행
 os.system("./darknet detector train {}/custom_data.data {}/yolov3.cfg {}/darknet53.conv.74 -dont_show".format(path, path, path))
