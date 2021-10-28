@@ -1,0 +1,24 @@
+<annotation>
+    <filename>test-11</filename>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>416</width>
+        <height>416</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>normal_body</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>73.75796794891357</xmin>
+            <ymin>55.72916126251221</ymin>
+            <xmax>200.0849313735962</xmax>
+            <ymax>364.2028274536133</ymax>
+        </bndbox>
+    </object>
+</annotation>

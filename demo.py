@@ -79,9 +79,9 @@ def get_args():
     parser.add_argument('-endTime', type=int,
                         default=30, dest='endTime') # 종료시간
     parser.add_argument('-mode', type=bool,
-                        default=False, dest='mode') # 객체 클래스 추가
+                        default=False, dest='mode') # 객체 클래스 추가 여부 
     parser.add_argument('-className', type=str,
-                        default="", dest='className') # 객체 클래스 추가                              
+                        default="", dest='className') # 추가할 객체 클래스 명 입력                              
     args = parser.parse_args()
     return args
 
@@ -236,11 +236,14 @@ if __name__ == '__main__':
       print()
     else: # 객체 클래스 추가 모드
       # clone darknet repos(다크넷 설치 : 차후 실행시 이미 설치된 폴더가 있으므로 재실행 x)
-      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/")
+      if(os.path.isdir("./darknet") == True):  
+        os.system("rm -rf darknet")
       os.system("git clone https://github.com/AlexeyAB/darknet")
 
       # change makefile to have GPU and OPENCV enabled(gpu와 opencv 사용여부를 true로 바꿈)
-      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/darknet")
+      os.system("pwd")
+      os.chdir("./darknet")
+      os.system("pwd")
       os.system("sed -i 's/OPENCV=0/OPENCV=1/' Makefile")
       os.system("sed -i 's/GPU=0/GPU=1/' Makefile")
       os.system("sed -i 's/CUDNN=0/CUDNN=1/' Makefile")
@@ -255,67 +258,72 @@ if __name__ == '__main__':
       classes = args.className.split(" ")
       num = len(classes)
 
-      f = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/classes.txt", 'w')
+      f = open("../custom/classes.txt", 'w')
       for i in range(len(classes)):
           data = classes[i] + "\n"
           f.write(data)
       f.close()
 
       current_path = os.path.abspath(os.curdir)
-      COLAB_DARKNET_ESCAPE_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model' #zip file url
-      COLAB_DARKNET_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model'
+      COLAB_DARKNET_ESCAPE_PATH = './yolov4_종설/Yolov4_model' #zip file url
+      COLAB_DARKNET_PATH = './yolov4_종설/Yolov4_model'
 
-      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom")
+      os.chdir("../custom")
       os.system("mkdir Person/")
-      os.system("unzip /content/drive/MyDrive/Person_90_1128.zip -d ./Person/")
+      os.system("unzip /content/drive/MyDrive/Person_90_1128.zip -d ./Person/") # 사용자한테 입력 받는걸로 변경
 
 
-      YOLO_IMAGE_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/Person'
-      YOLO_FORMAT_PATH = '/content/drive/MyDrive/yolov4_종설/Yolov4_model' + '/custom'
+      YOLO_IMAGE_PATH = './Person'
+      YOLO_FORMAT_PATH = '../custom'
 
       class_count = 0
       test_percentage = 0.2
       paths = []
 
-      with open(YOLO_FORMAT_PATH + '/' + 'classes.names', 'w') as names, \
-          open(YOLO_FORMAT_PATH + '/' + 'classes.txt', 'r') as txt:
+      os.system("pwd")
+      PATH = os.getcwd()
+      print(PATH)
+      with open(PATH + '/' + 'classes.names', 'w') as names, \
+          open(PATH + '/' + 'classes.txt', 'r') as txt:
           for line in txt:
               names.write(line)  
               class_count += 1
           print ("[classes.names] is created")
 
-      with open(YOLO_FORMAT_PATH + '/' + 'custom_data.data', 'w') as data:
+      with open(PATH + '/' + 'custom_data.data', 'w') as data:
           data.write('classes = ' + str(class_count) + '\n')
-          data.write('train = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'train.txt' + '\n')
-          data.write('valid = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'test.txt' + '\n')
-          data.write('names = ' + COLAB_DARKNET_ESCAPE_PATH + '/custom/' + 'classes.names' + '\n')
-          data.write('backup = /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom')
+          data.write('train = ' + PATH + '/train.txt' + '\n')
+          data.write('valid = ' + PATH + '/test.txt' + '\n')
+          data.write('names = ' + PATH + '/classes.names' + '\n')
+          data.write('backup = ' + PATH)
           print ("[custom_data.data] is created")
 
       os.chdir(YOLO_IMAGE_PATH)
       for current_dir, dirs, files in os.walk('.'):
           for f in files:
               if f.endswith('.jpg'):
-                  image_path = '/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/Person/' + f
+                  image_path = PATH + '/Person/' + f
                   paths.append(image_path + '\n')
 
       paths_test = paths[:int(len(paths) * test_percentage)]
       paths = paths[int(len(paths) * test_percentage):]
 
-      with open(YOLO_FORMAT_PATH + '/' + 'train.txt', 'w') as train_txt:
+      
+      with open(PATH + '/' + 'train.txt', 'w') as train_txt:
           for path in paths:
               train_txt.write(path)
           print ("[train.txt] is created")
 
-      with open(YOLO_FORMAT_PATH + '/' + 'test.txt', 'w') as test_txt:
+      with open(PATH + '/' + 'test.txt', 'w') as test_txt:
           for path in paths_test:
               test_txt.write(path)
           print ("[test.txt] is created")
 
       #------------------------------------------------------------------------
 
-      f = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/cfg/yolov3.cfg", 'r')
-      f2 = open("/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.txt", 'w')
+      os.chdir("../../")
+      f = open("./cfg/yolov3.cfg", 'r')
+      f2 = open("./yolov3.txt", 'w')
 
       while True: 
         line = f.readline()
@@ -335,19 +343,22 @@ if __name__ == '__main__':
       f.close()
       f2.close()
 
-      os.system("mv /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.txt /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.cfg")
-
+      os.system("mv ./yolov3.txt ./yolov3.cfg")
+    
       # wget명령어를 사용하여  darknet53.conv.74 다운
-      os.system("wget -P /content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/ https://pjreddie.com/media/files/darknet53.conv.74")
+      os.system("wget -P ./custom/ https://pjreddie.com/media/files/darknet53.conv.74")
 
-      os.chdir("/content/drive/MyDrive/yolov4_종설/Yolov4_model/darknet")
-      path = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/"
+
+      os.chdir("./darknet")
+      path = "../custom/"
 
       # 학습 진행
       os.system("./darknet detector train {}/custom_data.data {}/yolov3.cfg {}/darknet53.conv.74 -dont_show".format(path, path, path))
       
-      args.cfgfile = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3.cfg"
-      args.weightfile = "/content/drive/MyDrive/yolov4_종설/Yolov4_model/custom/yolov3_final.weights"
+
+      os.chdir("../custom")
+      args.cfgfile = "./yolov3.cfg"
+      args.weightfile = "./yolov3_final.weights"
 
       # 유튜브로 다운로드 받은 영상을 자동으로 video 확장자에 맞게 저장함
       # 동영상 url 링크 로딩 ----------------------
