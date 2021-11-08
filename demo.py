@@ -230,10 +230,16 @@ if __name__ == '__main__':
       elif(args.annotationType=='xml'):
           saveXmlAnnotation(m.width, m.height,Annotation)
     
-      deleteVideo() 
+      #deleteVideo() 
       print("삭제 완료")
 
       print()
+
+      print("압축 시작")
+      os.system("pwd")
+      os.system("zip test.zip ./resultdata/*")
+      print("압축 완료")
+
     else: # 객체 클래스 추가 모드
       # clone darknet repos(다크넷 설치 : 차후 실행시 이미 설치된 폴더가 있으므로 재실행 x)
       if(os.path.isdir("./darknet") == True):  
@@ -270,7 +276,7 @@ if __name__ == '__main__':
 
       os.chdir("../custom")
       os.system("mkdir Person/")
-      os.system("unzip /content/drive/MyDrive/Person_90_1128.zip -d ./Person/") # 사용자한테 입력 받는걸로 변경
+      os.system("unzip ./Person_90_1128.zip -d ./Person/") # 사용자한테 입력 받는걸로 변경
 
 
       YOLO_IMAGE_PATH = './Person'
@@ -345,7 +351,7 @@ if __name__ == '__main__':
 
       os.system("mv ./yolov3.txt ./yolov3.cfg")
     
-      # wget명령어를 사용하여  darknet53.conv.74 다운
+      # wget명령어를 사용하여  darknet53.conv.74 다운 단 darknet53.conv.74가 이미 존재하면 삭제
       os.system("wget -P ./custom/ https://pjreddie.com/media/files/darknet53.conv.74")
 
 
@@ -411,7 +417,8 @@ if __name__ == '__main__':
       elif(args.annotationType=='xml'):
           saveXmlAnnotation(m.width, m.height,Annotation)
     
-      deleteVideo() 
+      #deleteVideo() 
+
       print("삭제 완료")
 
       print()
