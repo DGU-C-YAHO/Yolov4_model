@@ -423,6 +423,10 @@ if __name__ == '__main__':
 
       print()
 
+      print("압축 시작")
+      os.system("pwd")
+      os.system("zip test.zip ./resultdata/*")
+      print("압축 완료")
       
 
 
